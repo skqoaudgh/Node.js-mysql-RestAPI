@@ -2,7 +2,13 @@ const db = require('../config/database');
 
 module.exports = {
     getProfessors: (req, res) => {
-        db.query('SELECT * FROM professor', (err, rows, field) => {
+        db.query(`
+            SELECT 
+                professor.ID, 
+                professor.Name, 
+                department.Name AS Department
+            FROM professor 
+            LEFT JOIN department ON department.ID=professor.DID`, (err, rows, fields) => {
             if(!err) {
                 let result = '';
                 rows.forEach(row => {
@@ -17,7 +23,14 @@ module.exports = {
     },
 
     getProfessor: (req, res, id) => {
-        db.query(`SELECT * FROM professor WHERE ID=${id}`, (err, row, field) => {
+        db.query(`
+            SELECT 
+                professor.ID, 
+                professor.Name, 
+                department.Name as Department
+            FROM professor
+            LEFT JOIN department ON department.ID=professor.DID
+            WHERE professor.ID=${id}`, (err, row, fields) => {
             if(!err) {
                 res.send(JSON.stringify(row));
             }
