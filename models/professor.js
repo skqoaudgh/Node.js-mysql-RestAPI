@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
     return sequelize.define('professor', {
         ID: {
-            type: DataTypes.INTEGER(10),
+            type: DataTypes.INTEGER(10).UNSIGNED,
             allowNull: false,
             unique: true,
             primaryKey: true
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER(10).UNSIGNED,
             allowNull: false,
             references: { 
-                model: "department", 
+                model: "departments",
                 key: "ID" 
             }
         }

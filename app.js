@@ -6,6 +6,9 @@ const studentRouter = require('./router/student');
 const professorRouter = require('./router/professor');
 const courseRouter = require('./router/course');
 
+const sequelize = require('./models/index').sequelize;
+sequelize.sync();
+
 const app = express();
 db.connect();
 
