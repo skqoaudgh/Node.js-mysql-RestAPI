@@ -15,8 +15,8 @@ router.post('/', (req, res, next) => {
     professorctrl.addProfessor(req, res, req.body);
 });
 
-router.delete('/', (req, res, next) => {
-    professorctrl.deleteProfessor(req, res, req.body.ID);
+router.delete('/:id', (req, res, next) => {
+    professorctrl.deleteProfessor(req, res, req.params.id);
 });
 
 router.put('/:id', (req, res, next) => {
