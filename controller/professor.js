@@ -1,8 +1,8 @@
 const db = require('../config/database');
 
 module.exports = {
-    getStudents: (req, res) => {
-        db.query('SELECT * FROM student', (err, rows, fields) => {
+    getProfessors: (req, res) => {
+        db.query('SELECT * FROM professor', (err, rows, field) => {
             if(!err) {
                 let result = '';
                 rows.forEach(row => {
@@ -16,8 +16,8 @@ module.exports = {
         });
     },
 
-    getStudent: (req, res, id) => {
-        db.query(`SELECT * FROM student WHERE ID=${id}`, (err, row, fields) => {
+    getProfessor: (req, res, id) => {
+        db.query(`SELECT * FROM professor WHERE ID=${id}`, (err, row, field) => {
             if(!err) {
                 res.send(JSON.stringify(row));
             }
@@ -27,18 +27,14 @@ module.exports = {
         });
     },
 
-    addStudent: (req, res, data) => {
+    addProfessor: (req, res, data) => {
         db.query(`
-            INSERT INTO student 
-            (ID, Name,Birth,Phonenumber,Email,Department,AssignedProfessor) 
+            INSERT INTO professor 
+            (ID, Name, DID) 
             VALUES
                 ("${data.ID}",
                 "${data.Name}",
-                "${data.Birth}",
-                "${data.Phonenumber}",
-                "${data.Email}",
-                "${data.Department}",
-                "${data.AssignedProfessor}")
+                "${data.DID}")
         `, (err, result) => {
             if(!err) {
                 res.send('1 record inserted');
@@ -49,8 +45,8 @@ module.exports = {
         });
     },
 
-    deleteStudent: (req, res, id) => {
-        db.query(`DELETE FROM student WHERE ID=${id}`, (err, result) => {
+    deleteProfessor: (req, res, id) => {
+        db.query(`DELETE FROM professor WHERE ID=${id}`, (err, result) => {
             if(!err) {
                 res.send(`id ${id} record deleted`);
             }
@@ -60,16 +56,13 @@ module.exports = {
         })
     },
 
-    updateStudent: (req, res, id, data) => {
+    updateProfessor: (req, res, id, data) => {
         db.query(`
-            UPDATE student 
+            UPDATE professor 
             SET 
                 ID = "${data.ID}",
                 Name = "${data.Name}",
-                Birth = "${data.Birth}",
-                Phonenumber = "${data.Phonenumber}",
-                Email = "${data.Email}",
-                Department = "${data.Department}" 
+                DID = "${data.DID}" 
             WHERE ID=${id}`
         , (err, result) => {
             if(!err) {
