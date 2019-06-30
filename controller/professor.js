@@ -1,89 +1,88 @@
-const db = require('../config/database');
+const Models = require('../models/index');
+const Professor = Models.Professor;
 
 module.exports = {
     getProfessors: (req, res) => {
-        db.query(`
-            SELECT 
-                professor.ID, 
-                professor.Name, 
-                department.Name AS Department
-            FROM professor 
-            LEFT JOIN department ON department.ID=professor.DID`, (err, rows, fields) => {
-            if(!err) {
-                let result = '';
-                rows.forEach(row => {
-                    result += JSON.stringify(row) + '<br>'
-                });
-                res.send(result);
-            }
-            else {
-                console.log(err);
-            }
+        Professor.findAll({
+            attributes: { 
+                exclude: ['AdvisorID'] 
+            },
+            include: [{
+                model: Models.Department,
+                as: 'Department',
+                where: { ID: Models.Sequelize.col('Professor.DepartmentID') },
+                attributes: { exclude: ['ID'] }
+            }]
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);
         });
     },
 
     getProfessor: (req, res, id) => {
-        db.query(`
-            SELECT 
-                professor.ID, 
-                professor.Name, 
-                department.Name as Department
-            FROM professor
-            LEFT JOIN department ON department.ID=professor.DID
-            WHERE professor.ID=${id}`, (err, row, fields) => {
-            if(!err) {
-                res.send(JSON.stringify(row));
+        Professor.findOne({
+            attributes: { 
+                exclude: ['AdvisorID'] 
+            },
+            include: [{
+                model: Models.Department,
+                as: 'Department',
+                where: { ID: Models.Sequelize.col('Professor.DepartmentID') },
+                attributes: { exclude: ['ID'] }
+            }],
+            where: {
+                ID: id
             }
-            else {
-                console.log(err);
-            }
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);
         });
     },
 
     addProfessor: (req, res, data) => {
-        db.query(`
-            INSERT INTO professor 
-            (ID, Name, DID) 
-            VALUES
-                ("${data.ID}",
-                "${data.Name}",
-                "${data.DID}")
-        `, (err, result) => {
-            if(!err) {
-                res.send('1 record inserted');
-            }
-            else {
-                console.log(err);
-            }
+        Professor.create({
+            ID: data.ID,
+            Name: data.Name,
+            DepartmentID: data.DepartmentID
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);          
         });
     },
 
     deleteProfessor: (req, res, id) => {
-        db.query(`DELETE FROM professor WHERE ID=${id}`, (err, result) => {
-            if(!err) {
-                res.send(`id ${id} record deleted`);
+        Professor.destroy({
+            where: {
+                ID: id
             }
-            else {
-                console.log(err);
-            }
-        })
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);          
+        });
     },
 
     updateProfessor: (req, res, id, data) => {
-        db.query(`
-            UPDATE professor 
-            SET 
-                ID = "${data.ID}",
-                Name = "${data.Name}",
-                DID = "${data.DID}" 
-            WHERE ID=${id}`
-        , (err, result) => {
-            if(!err) {
-                res.send('1 record inserted');
+        Professor.update({
+            ID: data.ID,
+            Name: data.Name,
+            DepartmentID: data.DepartmentID
+        },{
+            where: {
+                ID: id
             }
-            else {
-                console.log(err);
-            }
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);          
         });
     }
 }

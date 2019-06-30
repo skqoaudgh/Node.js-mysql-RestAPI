@@ -1,61 +1,79 @@
-const db = require('../config/database');
+const Models = require('../models/index');
+const Course = Models.Course;
+const Courselist = Models.Courselist;
 
 module.exports = {
     getAllCourses: (req, res) => {
-        db.query(`
-            SELECT course.ID, course.Name, professor.Name AS Professor
-            FROM course
-            LEFT JOIN professor ON professor.ID=course.Professor`, (err, rows, field) => {
-            if(!err) {
-                let result = '';
-                rows.forEach(row => {
-                    result += JSON.stringify(row) + '<br>'
-                });
-                res.send(result);
-            }
-            else {
-                console.log(err);
-            }
+        Course.findAll({
+            attributes: { 
+                exclude: ['ProfessorID'] 
+            },
+            include: [{
+                model: Models.Professor,
+                as: 'Professor',
+                where: { ID: Models.Sequelize.col('Course.ProfessorID') },
+                attributes: { exclude: ['ID', 'DepartmentID'] }
+            }]
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);
         });
     },
 
     getMyCourses: (req, res, id) => {
-        db.query(`
-            SELECT courselist.ID AS ListID, course.ID AS CourseID, course.Name
-            FROM courselist, course
-            WHERE courselist.SID=${id} AND courselist.CID=course.ID`, (err, rows, field) => {
-            if(!err) {
-                let result = '';
-                rows.forEach(row => {
-                    result += JSON.stringify(row) + '<br>'
-                });
-                res.send(result);
-            }
-            else {
-                console.log(err);
-            }
+        Courselist.findAll({
+            attributes: { 
+                exclude: ['StudentID'] 
+            },
+            include: [{
+                model: Models.Student,
+                as: 'Student',
+                where: { ID: Models.Sequelize.col('Courselist.StudentID') },
+                attributes: { exclude: ['ID', 'Birth', 'Phonenumber', 'Email', 'AdvisorID', 'DepartmentID'] }
+            }, {
+                model: Models.Course,
+                as: 'Course',
+                where: { ID: Models.Sequelize.col('Courselist.CourseID') },
+                include: [{
+                    model: Models.Professor,
+                    as: 'Professor',
+                    where: { ID: Models.Sequelize.col('Course.ProfessorID') },
+                    attributes: { exclude: ['ID', 'DepartmentID'] }
+                }],
+                attributes: { exclude: ['ProfessorID'] }
+            }]
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);
         });
     },
 
     registCourse: (req, res, data) => {
-        db.query(`INSERT INTO courselist (SID, CID) VALUES ("${data.sid}","${data.cid}")`, (err, result) => {
-            if(!err) {
-                res.send('1 record inserted');
-            }
-            else {
-                console.log(err);
-            }
+        Courselist.create({
+            StudentID: data.StudentID,
+            CourseID: data.CourseID
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);          
         });
     },
 
     cancelCourse: (req, res, id) => {
-        db.query(`DELETE FROM courselist WHERE ID=${id}`, (err, result) => {
-            if(!err) {
-                res.send(`id ${id} record deleted`);
+        Courselist.destroy({
+            where: {
+                ID: id
             }
-            else {
-                console.log(err);
-            }
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);          
         });
     }
 }

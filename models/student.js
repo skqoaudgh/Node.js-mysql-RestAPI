@@ -21,22 +21,6 @@ module.exports = (sequelize, DataTypes) => {
         Email: {
             type: DataTypes.STRING(45),
             allowNull: false
-        },
-        DepartmentID: {
-            type: DataTypes.INTEGER(10).UNSIGNED,
-            allowNull: false,
-            references: { 
-                model: "departments", 
-                key: "ID" 
-            }
-        },
-        AdvisorID: {
-            type: DataTypes.INTEGER(10).UNSIGNED,
-            allowNull: false,
-            references: { 
-                model: "professors", 
-                key: "ID" 
-            }
         }
     }, {
         timestamps: false,

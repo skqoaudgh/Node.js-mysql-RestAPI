@@ -1,103 +1,106 @@
-const db = require('../config/database');
+const Models = require('../models/index');
+const Student = Models.Student;
 
 module.exports = {
-    getStudents: (req, res) => {
-        db.query(`
-            SELECT 
-                student.ID, 
-                student.Name, 
-                student.Birth,
-                student.Phonenumber,
-                student.Email,
-                department.Name as Department,
-                professor.Name as AssignedProfessor
-            FROM student, department, professor
-            WHERE student.AssignedProfessor=professor.ID AND student.department=department.ID`, (err, rows, fields) => {
-            if(!err) {
-                let result = '';
-                rows.forEach(row => {
-                    result += JSON.stringify(row) + '<br>'
-                });
-                res.send(result);
-            }
-            else {
-                console.log(err);
-            }
+    getStudents: async (req, res) => {
+        Student.findAll({
+            attributes: { 
+                exclude: ['AdvisorID', 'DepartmentID'] 
+            },
+            include: [{
+                model: Models.Department,
+                as: 'Department',
+                where: { ID: Models.Sequelize.col('Student.DepartmentID') },
+                attributes: { exclude: ['ID'] }
+            },
+            {
+                model: Models.Professor,
+                as: 'Advisor',
+                where: { ID: Models.Sequelize.col('Student.AdvisorID') },
+                attributes: { exclude: ['ID', 'DepartmentID'] }
+            }]
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);
         });
     },
 
     getStudent: (req, res, id) => {
-        db.query(`
-            SELECT 
-                student.ID, 
-                student.Name, 
-                student.Birth,
-                student.Phonenumber,
-                student.Email,
-                department.Name as Department,
-                professor.Name as AssignedProfessor
-            FROM student, department, professor
-            WHERE student.ID=${id} AND student.AssignedProfessor=professor.ID AND student.department=department.ID`, (err, row, fields) => {
-            if(!err) {
-                res.send(JSON.stringify(row));
-            }
-            else {
-                console.log(err);
-            }
+        Student.findOne({
+            attributes: { 
+                exclude: ['AdvisorID', 'DepartmentID'] 
+            },
+            include: [{
+                model: Models.Department,
+                as: 'Department',
+                where: { ID: Models.Sequelize.col('Student.DepartmentID') },
+                attributes: { exclude: ['ID'] }
+            },
+            {
+                model: Models.Professor,
+                as: 'Advisor',
+                where: { ID: Models.Sequelize.col('Student.AdvisorID') },
+                attributes: { exclude: ['ID', 'DepartmentID'] }
+            }],
+            where: { ID: id }
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);
         });
     },
 
     addStudent: (req, res, data) => {
-        db.query(`
-            INSERT INTO student 
-            (ID, Name,Birth,Phonenumber,Email,Department,AssignedProfessor) 
-            VALUES
-                ("${data.ID}",
-                "${data.Name}",
-                "${data.Birth}",
-                "${data.Phonenumber}",
-                "${data.Email}",
-                "${data.Department}",
-                "${data.AssignedProfessor}")
-        `, (err, result) => {
-            if(!err) {
-                res.send('1 record inserted');
-            }
-            else {
-                console.log(err);
-            }
+        Student.create({
+            ID: data.ID,
+            Name: data.Name,
+            Birth: data.Birth,
+            Phonenumber: data.Phonenumber,
+            Email: data.Email,
+            DepartmentID: data.DepartmentID,
+            AdvisorID: data.AdvisorID
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);          
         });
     },
 
     deleteStudent: (req, res, id) => {
-        db.query(`DELETE FROM student WHERE ID=${id}`, (err, result) => {
-            if(!err) {
-                res.send(`id ${id} record deleted`);
+        Student.destroy({
+            where: {
+                ID: id
             }
-            else {
-                console.log(err);
-            }
-        })
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);          
+        });
     },
 
     updateStudent: (req, res, id, data) => {
-        db.query(`
-            UPDATE student 
-            SET 
-                ID = "${data.ID}",
-                Name = "${data.Name}",
-                Birth = "${data.Birth}",
-                Phonenumber = "${data.Phonenumber}",
-                Email = "${data.Email}",
-                Department = "${data.Department}" 
-            WHERE ID=${id}`
-        , (err, result) => {
-            if(!err) {
-                res.send('1 record inserted');
+        Student.update({
+            ID: data.ID,
+            Name: data.Name,
+            Birth: data.Birth,
+            Phonenumber: data.Phonenumber,
+            Email: data.Email,
+            DepartmentID: data.DepartmentID,
+            AdvisorID: data.AdvisorID         
+        },{
+            where: {
+                ID: id
             }
-            else {
-                console.log(err);
-            }
+        }).then(result => {
+            res.json(result);
+        }).catch(error => {
+            res.status(500).json({ error: error.toString() });
+            console.log(error);          
         });
     }
 }
